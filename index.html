@@ -35,7 +35,7 @@
   #lb { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; }
   #lb-img { max-width: 95%; max-height: 80%; object-fit: contain; }
   .lb-ctrl { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; padding: 20px 15px; border: none; font-size: 24px; z-index: 5001; }
-  .del-btn { position: absolute; top: -5px; right: -5px; background: var(--err); color: #fff; border-radius: 50%; width: 28px; height: 28px; z-index: 20; border: 2px solid #fff; cursor: pointer; display: none; }
+  .del-btn { position: absolute; top: -5px; right: -5px; background: var(--err); color: #fff; border-radius: 50%; width: 28px; height: 28px; z-index: 20; border: 2px solid #fff; cursor: pointer; }
   #admin-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--p); z-index: 3000; width: 90%; max-width: 380px; }
   .cart { position: fixed; right: -100%; top: 0; width: 100%; max-width: 380px; height: 100%; background: var(--card); padding: 20px; transition: 0.4s; z-index: 2000; overflow-y: auto; }
   .cart.open { right: 0; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
@@ -77,6 +77,7 @@
 </div>
 
 <div id="admin-panel">
+  <div id="v-count" style="padding:10px; background:var(--p); color:#fff; border-radius:10px; margin-bottom:10px; text-align:center; font-weight:bold;">Visitors: Loading...</div>
   <h3>Settings</h3>
   <input id="n-name" placeholder="Name">
   <input id="n-price" type="number" placeholder="Price (DA)">
@@ -99,20 +100,27 @@
 </div>
 
 <script>
-// --- REPLACE THIS WITH YOUR FIREBASE CONFIG ---
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  databaseURL: "YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID"
+  apiKey: "AIzaSyC8wtssEyyIgD5x3JLV_miPsoMrgvD9EDM",
+  databaseURL: "https://colorshop-933e7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "colorshop-933e7"
 };
-// ----------------------------------------------
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const PASS = "1234";
+const PASS = "12346";
 const MY_EMAIL = "fullshopdz@gmail.com";
+const wilayas = ["01 Adrar","02 Chlef","03 Laghouat","04 Oum El Bouaghi","05 Batna","06 Béjaïa","07 Biskra","08 Béchar","09 Blida","10 Bouira","11 Tamanrasset","12 Tébessa","13 Tlemcen","14 Tiaret","15 Tizi Ouzou","16 Algiers","17 Djelfa","18 Jijel","19 Sétif","20 Saïda","21 Skikda","22 Sidi Bel Abbès","23 Annaba","24 Guelma","25 Constantine","26 Médéa","27 Mostaganem","28 M'Sila","29 Mascara","30 Ouargla","31 Oran","32 El Bayadh","33 Illizi","34 Bordj Bou Arréridj","35 Boumerdès","36 El Tarf","37 Tindouf","38 Tissemsilt","39 El Oued","40 Khenchela","41 Souk Ahras","42 Tipaza","43 Mila","44 Aïn Defla","45 Naâma","46 Aïn Témouchent","47 Ghardaïa","48 Relizane","49 El M'Ghair","50 El Meniaa","51 Ouled Djellal","52 Bordj Baji Mokhtar","53 Béni Abbès","54 Timimoun","55 Touggourt","56 Djanet","57 In Salah","58 In Guezzam"];
+
 let items = [], cart = [], isAdmin = false, delMode = "Home", curCat = "All", galleryState = {}, activeZoomId = null;
+
+const wSel = document.getElementById('c-wilaya');
+wilayas.forEach(w => { let o = document.createElement('option'); o.value=w; o.text=w; wSel.add(o); });
+
+// Tracking
+db.ref('visitors').transaction(curr => (curr || 0) + 1);
+db.ref('visitors').on('value', snap => { document.getElementById('v-count').innerText = "Total Visitors: " + (snap.val() || 0); });
 
 // Listen for Data
 db.ref('products').on('value', (snap) => {
@@ -120,16 +128,7 @@ db.ref('products').on('value', (snap) => {
   items = data ? Object.keys(data).map(key => ({...data[key], fbKey: key})) : [];
   draw();
 });
-const firebaseConfig = {
-  apiKey: "AIzaSyC8wtssEyyIgD5x3JLV_miPsoMrgvD9EDM",
-  authDomain: "colorshop-933e7.firebaseapp.com",
-  databaseURL: "https://colorshop-933e7-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "colorshop-933e7",
-  storageBucket: "colorshop-933e7.firebasestorage.app",
-  messagingSenderId: "152473838882",
-  appId: "1:152473838882:web:28950a880135c16f1a717b",
-  measurementId: "G-WM4L9PG1PY"
-};
+
 function draw() {
     const g = document.getElementById("grid");
     const s = document.getElementById("search-bar").value.toLowerCase();
@@ -139,6 +138,7 @@ function draw() {
     if(sort === "low") filtered.sort((a,b) => a.price - b.price);
     else if(sort === "high") filtered.sort((a,b) => b.price - a.price);
     else if(sort === "new") filtered.reverse();
+    
     filtered.forEach(p => {
         const curIdx = galleryState[p.id] || 0;
         let dots = p.imgs.length > 1 ? `<div class="dots">${p.imgs.map((_,i)=>`<div class="dot ${i===curIdx?'active':''}"></div>`).join('')}</div>` : '';
@@ -150,7 +150,7 @@ function draw() {
                 <div class="nav-tap nav-right" onclick="swapGallery(${p.id}, 1)"></div>
                 <img src="${p.imgs[curIdx]}">${dots}
             </div>
-            <h4>${p.name}</h4><p style="color:var(--p); font-weight:bold;">${p.price} DA</p>
+            <h4>${p.name}</h4><p style="color:var(--p); font-weight:bold;">${p.price.toLocaleString()} DA</p>
             <button onclick="addToCart(${p.id})" class="btn-p">Add to Cart</button>
         </div>`;
     });
@@ -207,16 +207,27 @@ function clearAll() { if(confirm("Clear All?")) db.ref('products').remove(); }
 function logout() { isAdmin = false; document.getElementById('admin-panel').style.display='none'; draw(); }
 function toggleCart() { document.getElementById('cart-panel').classList.toggle('open'); }
 function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='dark'?'light':'dark'); }
+function setDel(m) { delMode = m; document.getElementById('m-home').className = m==='Home'?'del-box active':'del-box'; document.getElementById('m-desk').className = m==='Stop Desk'?'del-box active':'del-box'; }
 function addToCart(id) { const i = items.find(x=>x.id===id); const ex = cart.find(x=>x.id===id); if(ex) ex.qty++; else cart.push({...i, qty:1}); updateCart(); }
+
 function updateCart() {
-    let t = 0, c = 0; document.getElementById('cart-list').innerHTML = cart.map(i => { t += i.price*i.qty; c += i.qty; return `<div>${i.name} (x${i.qty})</div>`; }).join('');
-    document.getElementById('cart-total').innerText = t; document.getElementById('cart-count').innerText = c;
+    let t = 0, c = 0; document.getElementById('cart-list').innerHTML = cart.map(i => { t += i.price*i.qty; c += i.qty; return `<div style="margin-bottom:5px;"><b>${i.name}</b> (x${i.qty}) - ${(i.price*i.qty).toLocaleString()} DA</div>`; }).join('');
+    document.getElementById('cart-total').innerText = t.toLocaleString(); document.getElementById('cart-count').innerText = c;
 }
+
 function updateCats() {
     const categories = ["All", ...new Set(items.map(i => i.cat))];
     document.getElementById('cat-list').innerHTML = categories.map(c => `<button class="cat-btn ${curCat===c?'active':''}" onclick="curCat='${c}'; draw()">${c}</button>`).join('');
 }
-function checkout() { alert("Check email logic..."); } // Add your email logic back here
+
+function checkout() {
+    const name = document.getElementById('c-name').value, ph = document.getElementById('c-phone').value, w = document.getElementById('c-wilaya').value;
+    if(!name || !ph || cart.length === 0) return alert("Fill Name, Phone and add items!");
+    let body = `New Order from ${name}\nPhone: ${ph}\nWilaya: ${w}\nDelivery: ${delMode}\n\nItems:`;
+    cart.forEach(c => body += `\n- ${c.name} (x${c.qty})`);
+    body += `\n\nTotal: ${document.getElementById('cart-total').innerText} DA`;
+    window.location.href = `mailto:${MY_EMAIL}?subject=Order_${name}&body=${encodeURIComponent(body)}`;
+}
 
 draw();
 </script>
