@@ -2,19 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ColorShop | Ultimate Algeria Edition</title>
+<title>ColorShop | Pro Secret</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-  :root { --p: #6a5cff; --bg: #f6f7fb; --card: #fff; --txt: #333; --wa: #25D366; --err: #ff4d4d; --brd: #eeeeee; }
+  :root { --p: #6a5cff; --bg: #f6f7fb; --card: #fff; --txt: #333; --err: #ff4d4d; --brd: #eeeeee; }
   [data-theme="dark"] { --bg: #121212; --card: #1e1e1e; --txt: #f0f0f0; --brd: #333; }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--txt); transition: 0.3s; padding-bottom: 80px; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--txt); transition: 0.3s; padding-bottom: 80px; overflow-x: hidden; }
   
-  /* HEADER */
-  header { background: var(--p); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-  .v-stat { font-size: 10px; text-align: right; cursor: pointer; user-select: none; }
-  
-  /* TOOLS & SORTING */
+  header { background: var(--p); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+  #admin-trigger { cursor: default; user-select: none; }
+
   .tools { background: var(--card); border-bottom: 1px solid var(--brd); padding: 10px 15px; }
   .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
   #search-bar { flex: 2; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--brd); background: var(--bg); color: var(--txt); outline: none; }
@@ -23,53 +21,55 @@
   .cat-btn { padding: 6px 15px; border-radius: 20px; border: 1px solid var(--brd); background: var(--card); color: var(--txt); font-size: 12px; white-space: nowrap; cursor: pointer; }
   .cat-btn.active { background: var(--p); color: #fff; border-color: var(--p); }
 
-  /* PRODUCT GRID */
   .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 15px; }
-  .product { background: var(--card); padding: 12px; border-radius: 15px; text-align: center; border: 1px solid var(--brd); position: relative; transition: 0.2s; }
+  .product { background: var(--card); padding: 12px; border-radius: 15px; text-align: center; border: 1px solid var(--brd); position: relative; }
   
-  /* IMAGE GALLERY SLIDER */
-  .slider { width: 100%; height: 160px; overflow: hidden; border-radius: 10px; position: relative; background: #f0f0f0; margin-bottom: 10px; }
-  .slide-wrap { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 100%; }
-  .slide-wrap::-webkit-scrollbar { display: none; }
-  .slide-wrap img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; cursor: zoom-in; }
-  .dots { position: absolute; bottom: 8px; width: 100%; display: flex; justify-content: center; gap: 4px; pointer-events: none; }
-  .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; }
-  .dot.active { background: #fff; transform: scale(1.3); }
+  /* GALLERY SYSTEM */
+  .gallery-container { width: 100%; height: 180px; position: relative; border-radius: 10px; overflow: hidden; background: #eee; margin-bottom: 10px; }
+  .gallery-container img { width: 100%; height: 100%; object-fit: cover; }
+  .nav-tap { position: absolute; top: 0; width: 30%; height: 100%; z-index: 5; cursor: pointer; }
+  .nav-left { left: 0; }
+  .nav-right { right: 0; }
+  .center-tap { position: absolute; top: 0; left: 30%; width: 40%; height: 100%; z-index: 6; cursor: zoom-in; }
+  .dots { position: absolute; bottom: 8px; width: 100%; display: flex; justify-content: center; gap: 4px; pointer-events: none; z-index: 7; }
+  .dot { width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+  .dot.active { background: #fff; transform: scale(1.4); }
 
-  /* ADMIN UI */
-  .del-btn { position: absolute; top: -5px; right: -5px; background: var(--err); color: #fff; border-radius: 50%; width: 28px; height: 28px; z-index: 10; border: 2px solid #fff; font-weight: bold; cursor: pointer; display: none; }
+  /* ZOOM OVERLAY */
+  #lb { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; flex-direction: column; }
+  #lb-img { max-width: 95%; max-height: 80%; border-radius: 5px; object-fit: contain; }
+  .lb-ctrl { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; padding: 20px 15px; font-size: 24px; border: none; cursor: pointer; z-index: 5001; }
+  .lb-left { left: 10px; }
+  .lb-right { right: 10px; }
+  .lb-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 35px; cursor: pointer; z-index: 5002; }
+
+  .del-btn { position: absolute; top: -5px; right: -5px; background: var(--err); color: #fff; border-radius: 50%; width: 28px; height: 28px; z-index: 20; border: 2px solid #fff; cursor: pointer; display: none; }
   #admin-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--p); z-index: 3000; width: 90%; max-width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
-  /* CART & CHECKOUT */
   .cart { position: fixed; right: -100%; top: 0; width: 100%; max-width: 380px; height: 100%; background: var(--card); padding: 20px; transition: 0.4s; z-index: 2000; overflow-y: auto; }
   .cart.open { right: 0; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
   .del-options { display: flex; gap: 10px; margin: 15px 0; }
-  .del-box { flex: 1; border: 1px solid var(--brd); padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: bold; font-size: 13px; }
+  .del-box { flex: 1; border: 1px solid var(--brd); padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: bold; font-size: 13px; }
   .del-box.active { border-color: var(--p); background: rgba(106, 92, 255, 0.1); color: var(--p); }
 
-  input, select { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid var(--brd); border-radius: 10px; background: var(--bg); color: var(--txt); font-size: 14px; }
-  .btn-wa { background: var(--wa); color: #fff; width: 100%; padding: 15px; border-radius: 12px; margin-top: 15px; border: none; font-weight: bold; cursor: pointer; }
-  .btn-mail { background: #333; color: #fff; width: 100%; padding: 15px; border-radius: 12px; margin-top: 8px; border: none; font-weight: bold; cursor: pointer; }
-  
-  /* LIGHTBOX ZOOM */
-  #lb { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; }
-  #lb img { max-width: 95%; max-height: 85%; border-radius: 10px; }
+  input, select { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid var(--brd); border-radius: 10px; background: var(--bg); color: var(--txt); }
+  .btn-p { background: var(--p); color: #fff; width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+  .btn-mail { background: #333; color: #fff; width: 100%; padding: 15px; border-radius: 12px; margin-top: 15px; border: none; font-weight: bold; cursor: pointer; }
 </style>
 </head>
 <body data-theme="light">
 
 <header>
-  <h2 style="margin:0; letter-spacing: -1px;">ColorShop</h2>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <div class="v-stat" id="v-trigger">Visitors<br><b id="v-num">0</b></div>
+  <h2 id="admin-trigger">ColorShop</h2>
+  <div style="display:flex; align-items:center; gap:8px;">
     <button onclick="toggleTheme()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">🌓</button>
-    <button onclick="toggleCart()" style="background:#fff; color:var(--p); border:none; padding: 8px 15px; border-radius:10px; font-weight:bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🛒 <span id="cart-count">0</span></button>
+    <button onclick="toggleCart()" style="background:#fff; color:var(--p); border:none; padding: 8px 12px; border-radius:8px; font-weight:bold;">🛒 <span id="cart-count">0</span></button>
   </div>
 </header>
 
 <div class="tools">
   <div class="search-row">
-    <input type="text" id="search-bar" placeholder="Search products..." oninput="draw()">
+    <input type="text" id="search-bar" placeholder="Search..." oninput="draw()">
     <select id="sort-select" onchange="draw()">
       <option value="new">Latest</option>
       <option value="low">Price ↑</option>
@@ -81,52 +81,50 @@
 
 <div class="products" id="grid"></div>
 
+<div id="lb">
+    <span class="lb-close" onclick="closeZoom()">&times;</span>
+    <button class="lb-ctrl lb-left" onclick="zoomSwap(-1)">&#10094;</button>
+    <img id="lb-img">
+    <button class="lb-ctrl lb-right" onclick="zoomSwap(1)">&#10095;</button>
+</div>
+
 <div id="admin-panel">
-  <h3 style="margin:0 0 15px 0;">Admin Settings</h3>
-  <input id="n-name" placeholder="Product Name">
+  <h3 style="margin:0 0 15px 0;">Settings</h3>
+  <input id="n-name" placeholder="Name">
   <input id="n-price" type="number" placeholder="Price (DA)">
   <input id="n-cat" placeholder="Category">
-  <label style="display:block; margin-top:15px; font-size:12px;">Select One or More Images:</label>
-  <input id="n-files" type="file" multiple accept="image/*">
-  <button onclick="addItem()" style="background:var(--p); color:#fff; width:100%; padding:12px; border-radius:10px; border:none; margin-top:20px; font-weight:bold;">Save Product</button>
+  <input id="n-files" type="file" multiple accept="image/*" style="font-size:12px; margin-top:15px;">
+  <button onclick="addItem()" class="btn-p" style="margin-top:20px;">Save Product</button>
   <div style="display:flex; gap:10px; margin-top:10px;">
-    <button onclick="logout()" style="flex:1; background:#eee; padding:10px; border-radius:10px; border:none;">Close</button>
-    <button onclick="clearAll()" style="flex:1; background:var(--err); color:#fff; padding:10px; border-radius:10px; border:none;">Delete All</button>
+    <button onclick="logout()" style="flex:1; background:#eee; padding:10px; border:none; border-radius:10px;">Exit</button>
+    <button onclick="clearAll()" style="flex:1; background:var(--err); color:#fff; padding:10px; border:none; border-radius:10px;">Wipe Shop</button>
   </div>
 </div>
 
 <div class="cart" id="cart-panel">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-    <h3 style="margin:0">Your Cart</h3>
-    <button onclick="toggleCart()" style="background:none; border:none; font-size:30px; cursor:pointer;">&times;</button>
+    <h3 style="margin:0">Checkout</h3>
+    <button onclick="toggleCart()" style="background:none; border:none; font-size:30px;">&times;</button>
   </div>
   <div id="cart-list"></div>
   <h3 style="text-align:right; border-top:1px solid var(--brd); padding-top:15px;">Total: <span id="cart-total">0</span> DA</h3>
-
   <input id="c-name" placeholder="Full Name">
   <input id="c-phone" type="tel" placeholder="Phone Number">
   <select id="c-wilaya"></select>
-
   <div class="del-options">
     <div class="del-box active" id="m-home" onclick="setDel('Home')">🏠 Home</div>
     <div class="del-box" id="m-desk" onclick="setDel('Stop Desk')">📦 Desk</div>
   </div>
-
-  <button class="btn-wa" onclick="checkout('wa')">Order via WhatsApp</button>
-  <button class="btn-mail" onclick="checkout('mail')">Order via Email</button>
+  <button class="btn-mail" onclick="checkout()">Place Order via Email</button>
 </div>
 
-<div id="lb" onclick="this.style.display='none'"><img id="lb-img"></div>
-
 <script>
-const PASS = "1234";
-const MY_WA = "213000000000"; // Update this
-const MY_EMAIL = "your-email@example.com"; // Update this
-
+const PASS = "12346";
+const MY_EMAIL = "fullshopdz@gmail.com"; 
 const wilayas = ["01 Adrar","02 Chlef","03 Laghouat","04 Oum El Bouaghi","05 Batna","06 Béjaïa","07 Biskra","08 Béchar","09 Blida","10 Bouira","11 Tamanrasset","12 Tébessa","13 Tlemcen","14 Tiaret","15 Tizi Ouzou","16 Algiers","17 Djelfa","18 Jijel","19 Sétif","20 Saïda","21 Skikda","22 Sidi Bel Abbès","23 Annaba","24 Guelma","25 Constantine","26 Médéa","27 Mostaganem","28 M'Sila","29 Mascara","30 Ouargla","31 Oran","32 El Bayadh","33 Illizi","34 Bordj Bou Arréridj","35 Boumerdès","36 El Tarf","37 Tindouf","38 Tissemsilt","39 El Oued","40 Khenchela","41 Souk Ahras","42 Tipaza","43 Mila","44 Aïn Defla","45 Naâma","46 Aïn Témouchent","47 Ghardaïa","48 Relizane","49 El M'Ghair","50 El Meniaa","51 Ouled Djellal","52 Bordj Baji Mokhtar","53 Béni Abbès","54 Timimoun","55 Touggourt","56 Djanet","57 In Salah","58 In Guezzam"];
 
-let items = JSON.parse(localStorage.getItem("shop_vFinal_Ultimate")) || [];
-let cart = [], isAdmin = false, delMode = "Home", curCat = "All";
+let items = JSON.parse(localStorage.getItem("shop_vFinal_Pro_X")) || [];
+let cart = [], isAdmin = false, delMode = "Home", curCat = "All", galleryState = {}, activeZoomId = null;
 
 // Populate Wilayas
 const wSel = document.getElementById('c-wilaya');
@@ -139,38 +137,78 @@ function draw() {
     g.innerHTML = "";
 
     let filtered = items.filter(i => (curCat==="All" || i.cat===curCat) && i.name.toLowerCase().includes(s));
-    
     if(sort === "low") filtered.sort((a,b) => a.price - b.price);
     else if(sort === "high") filtered.sort((a,b) => b.price - a.price);
     else if(sort === "new") filtered.reverse();
 
     filtered.forEach(p => {
-        let dots = p.imgs.length > 1 ? `<div class="dots">${p.imgs.map((_,idx)=>`<div class="dot ${idx===0?'active':''}" id="dot-${p.id}-${idx}"></div>`).join('')}</div>` : '';
+        const curIdx = galleryState[p.id] || 0;
+        let dots = p.imgs.length > 1 ? `<div class="dots">${p.imgs.map((_,i)=>`<div class="dot ${i===curIdx?'active':''}"></div>`).join('')}</div>` : '';
         g.innerHTML += `
         <div class="product">
             <button class="del-btn" style="display:${isAdmin?'block':'none'}" onclick="deleteItem(${p.id})">×</button>
-            <div class="slider" onclick="zoom(event)">
-                <div class="slide-wrap" onscroll="syncDots(${p.id}, this)">
-                    ${p.imgs.map(img => `<img src="${img}">`).join('')}
-                </div>
+            <div class="gallery-container">
+                <div class="nav-tap nav-left" onclick="swapGallery(${p.id}, -1)"></div>
+                <div class="center-tap" onclick="openZoom(${p.id})"></div>
+                <div class="nav-tap nav-right" onclick="swapGallery(${p.id}, 1)"></div>
+                <img src="${p.imgs[curIdx]}">
                 ${dots}
             </div>
-            <h4 style="margin:8px 0 2px 0; font-size:15px;">${p.name}</h4>
+            <h4 style="margin:5px 0">${p.name}</h4>
             <p style="color:var(--p); font-weight:bold; margin-bottom:10px;">${p.price.toLocaleString()} DA</p>
-            <button onclick="addToCart(${p.id})" style="background:var(--p); color:#fff; border:none; width:100%; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">Add to Cart</button>
+            <button onclick="addToCart(${p.id})" class="btn-p">Add to Cart</button>
         </div>`;
     });
     updateCats();
 }
 
-function syncDots(pid, el) {
-    const idx = Math.round(el.scrollLeft / el.offsetWidth);
-    document.querySelectorAll(`[id^="dot-${pid}-"]`).forEach((d,i) => d.classList.toggle('active', i===idx));
+function swapGallery(id, dir) {
+    const p = items.find(x => x.id === id);
+    let cur = galleryState[id] || 0;
+    cur = (cur + dir + p.imgs.length) % p.imgs.length;
+    galleryState[id] = cur;
+    draw();
 }
 
+function openZoom(id) {
+    activeZoomId = id;
+    const p = items.find(x => x.id === id);
+    const curIdx = galleryState[id] || 0;
+    document.getElementById('lb-img').src = p.imgs[curIdx];
+    document.getElementById('lb').style.display = 'flex';
+}
+
+function zoomSwap(dir) {
+    if(!activeZoomId) return;
+    const p = items.find(x => x.id === activeZoomId);
+    let cur = galleryState[activeZoomId] || 0;
+    cur = (cur + dir + p.imgs.length) % p.imgs.length;
+    galleryState[activeZoomId] = cur;
+    document.getElementById('lb-img').src = p.imgs[cur];
+    draw();
+}
+
+function closeZoom() {
+    document.getElementById('lb').style.display = 'none';
+    activeZoomId = null;
+}
+
+// SECRET ADMIN LOGIC (4 TAPS)
+let tapCount = 0;
+let tapTimer;
+document.getElementById('admin-trigger').onclick = () => {
+    tapCount++;
+    clearTimeout(tapTimer);
+    if (tapCount === 4) {
+        if(prompt("Admin Access:") === PASS) { isAdmin = true; document.getElementById('admin-panel').style.display='block'; draw(); }
+        tapCount = 0;
+    }
+    tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
+};
+
 async function addItem() {
-    const n = document.getElementById('n-name').value, p = document.getElementById('n-price').value, c = document.getElementById('n-cat').value || "General", files = document.getElementById('n-files').files;
-    if(!n || !p || files.length === 0) return alert("Please fill Name, Price and select Images!");
+    const n = document.getElementById('n-name').value, p = document.getElementById('n-price').value, c = document.getElementById('n-cat').value || "All", files = document.getElementById('n-files').files;
+    if(!n || !p || files.length === 0) return alert("Missing Info!");
     
     let imgList = [];
     for(let f of files) {
@@ -178,32 +216,18 @@ async function addItem() {
         imgList.push(b64);
     }
     items.push({ id: Date.now(), name: n, price: parseInt(p), cat: c, imgs: imgList });
-    localStorage.setItem("shop_vFinal_Ultimate", JSON.stringify(items));
-    draw(); alert("Success!");
+    localStorage.setItem("shop_vFinal_Pro_X", JSON.stringify(items));
+    draw(); alert("Saved!");
 }
 
-function checkout(type) {
+function checkout() {
     const name = document.getElementById('c-name').value, ph = document.getElementById('c-phone').value, w = document.getElementById('c-wilaya').value;
     if(!name || !ph || cart.length === 0) return alert("Fill Name and Phone!");
-
-    let summary = `📦 *NEW ORDER*\n👤 Name: ${name}\n📞 Phone: ${ph}\n📍 Wilaya: ${w}\n🚚 Delivery: ${delMode}\n\n*Items:*`;
-    cart.forEach(c => summary += `\n- ${c.name} (x${c.qty})`);
-    summary += `\n\n💰 *Total:* ${document.getElementById('cart-total').innerText} DA`;
-
-    if(type === 'wa') window.open(`https://wa.me/${MY_WA}?text=${encodeURIComponent(summary)}`);
-    else window.location.href = `mailto:${MY_EMAIL}?subject=Order_${name}&body=${encodeURIComponent(summary)}`;
+    let sum = `Order: ${name}\nPhone: ${ph}\nWilaya: ${w}\nDel: ${delMode}\n\nItems:`;
+    cart.forEach(c => sum += `\n- ${c.name} (x${c.qty})`);
+    sum += `\n\nTotal: ${document.getElementById('cart-total').innerText} DA`;
+    window.location.href = `mailto:${MY_EMAIL}?subject=Order_${name}&body=${encodeURIComponent(sum)}`;
 }
-
-// UI HELPERS
-let clickCount = 0;
-document.getElementById('v-trigger').onclick = () => {
-    clickCount++;
-    if(clickCount === 2) {
-        if(prompt("Admin Access:") === PASS) { isAdmin = true; document.getElementById('admin-panel').style.display='block'; draw(); }
-        clickCount = 0;
-    }
-    setTimeout(() => clickCount = 0, 500);
-};
 
 function updateCats() {
     const list = document.getElementById('cat-list');
@@ -217,7 +241,6 @@ function setDel(m) {
     document.getElementById('m-desk').classList.toggle('active', m === 'Stop Desk');
 }
 
-function zoom(e) { if(e.target.tagName === 'IMG') { document.getElementById('lb-img').src = e.target.src; document.getElementById('lb').style.display = 'flex'; } }
 function addToCart(id) { const i = items.find(x=>x.id===id); const ex = cart.find(x=>x.id===id); if(ex) ex.qty++; else cart.push({...i, qty:1}); updateCart(); }
 function updateCart() {
     let t = 0, c = 0; document.getElementById('cart-list').innerHTML = cart.map(i => {
@@ -227,15 +250,11 @@ function updateCart() {
     document.getElementById('cart-total').innerText = t.toLocaleString();
     document.getElementById('cart-count').innerText = c;
 }
-function deleteItem(id) { if(confirm("Delete?")) { items = items.filter(x=>x.id!==id); localStorage.setItem("shop_vFinal_Ultimate", JSON.stringify(items)); draw(); } }
-function clearAll() { if(confirm("Wipe all products?")) { items = []; localStorage.removeItem("shop_vFinal_Ultimate"); draw(); } }
+function deleteItem(id) { if(confirm("Delete?")) { items = items.filter(x=>x.id!==id); localStorage.setItem("shop_vFinal_Pro_X", JSON.stringify(items)); draw(); } }
+function clearAll() { if(confirm("Clear shop?")) { items = []; localStorage.removeItem("shop_vFinal_Pro_X"); draw(); } }
 function logout() { isAdmin = false; document.getElementById('admin-panel').style.display='none'; draw(); }
 function toggleCart() { document.getElementById('cart-panel').classList.toggle('open'); }
 function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='dark'?'light':'dark'); }
-
-let vNum = Number(localStorage.getItem("v_count")) || 0;
-if(!sessionStorage.getItem("v_session")) { vNum++; localStorage.setItem("v_count", vNum); sessionStorage.setItem("v_session", "1"); }
-document.getElementById("v-num").innerText = vNum;
 
 draw();
 </script>
