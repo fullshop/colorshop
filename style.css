@@ -1,0 +1,38 @@
+:root {
+  --p:#6a5cff; --bg:#f6f7fb; --card:#fff; --txt:#333;
+}
+[data-theme="dark"] {
+  --bg:#121212; --card:#1e1e1e; --txt:#f0f0f0;
+}
+
+body {
+  margin:0; font-family:Segoe UI;
+  background:var(--bg); color:var(--txt);
+}
+
+header {
+  background:var(--p); color:#fff;
+  padding:10px; display:flex;
+  justify-content:space-between;
+}
+
+.products {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:15px; padding:15px;
+}
+
+.product {
+  background:var(--card);
+  padding:10px; border-radius:12px;
+  text-align:center;
+}
+
+.cart {
+  position:fixed; right:-100%;
+  width:100%; max-width:380px;
+  background:var(--card);
+  height:100%; transition:.4s;
+}
+
+.cart.open { right:0; }
